@@ -2,5 +2,6 @@
 
 |Android Studio Bumblebee | 2021.1.1 Patch 2|
 |--|--|
+|Compile sdk|32|
 |Runtime version| 11.0.11+9-b60-7590822 amd64|
 |Windows |10 10.0|
