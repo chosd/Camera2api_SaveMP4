@@ -408,15 +408,15 @@ public class MainActivity extends AppCompatActivity {
             assert texture != null;
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 17000000l) ;
+            mPreviewBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 400) ;
 
             Surface previewSurface = new Surface(texture);
             mPreviewBuilder.addTarget(previewSurface);
-//            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
-//            mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
-//            mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
-//            mPreviewBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
-//            mPreviewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 17000000l) ;
-//            mPreviewBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 400) ;
             mCameraDevice.createCaptureSession(Collections.singletonList(previewSurface),
                     new CameraCaptureSession.StateCallback() {
 
@@ -490,11 +490,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpMediaRecorder() throws IOException {
 
-        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        //mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
 
-        File path = new File (Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/");
+        File path = new File (Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Gesture_data/");
         if (!path.exists()) {
             path.mkdirs();
         }
@@ -505,10 +505,10 @@ public class MainActivity extends AppCompatActivity {
 
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoFrameRate(30);
-        mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
-        //mMediaRecorder.setVideoSize(1280, 720);
+        //mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+        mMediaRecorder.setVideoSize(1280, 720);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        //mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
         switch (mSensorOrientation) {
             case SENSOR_ORIENTATION_DEFAULT_DEGREES:
@@ -530,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
             setUpMediaRecorder();
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
-            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            //texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
             mPreviewBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             List<Surface> surfaces = new ArrayList<>();
 
@@ -542,6 +542,12 @@ public class MainActivity extends AppCompatActivity {
             // Set up Surface for the MediaRecorder
             Surface recorderSurface = mMediaRecorder.getSurface();
             surfaces.add(recorderSurface);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
+            mPreviewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 17000000l) ;
+            mPreviewBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 400) ;
             mPreviewBuilder.addTarget(recorderSurface);
 
             // Start a capture session
