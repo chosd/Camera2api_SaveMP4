@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
 
-        File path = new File (Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Gesture_avi/");
+        File path = new File (Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM/Camera/");
         if (!path.exists()) {
             path.mkdirs();
         }
