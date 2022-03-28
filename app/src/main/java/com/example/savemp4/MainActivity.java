@@ -1,6 +1,7 @@
 package com.example.savemp4;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -33,6 +34,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
@@ -225,6 +227,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 타이틀바 제거하기
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
+
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
         mButtonVideo = (Button) findViewById(R.id.video);
         mButtonVideo.setOnClickListener(new Button.OnClickListener() {
@@ -340,19 +346,17 @@ public class MainActivity extends AppCompatActivity {
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            String cameraId = manager.getCameraIdList()[0];
-
+            String cameraId = chooseCamera();
             // Choose the sizes for camera preview and video recording
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-            StreamConfigurationMap map = characteristics
-                    .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
+            mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height, mVideoSize);
+            Log.i(TAG, String.format("mPreviewSize w h : %d x %d", mPreviewSize.getWidth(), mPreviewSize.getHeight()));
             if (map == null) {
                 throw new RuntimeException("Cannot get available preview/video sizes");
             }
-            mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
-            mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                    width, height, mVideoSize);
 
             int orientation = getResources().getConfiguration().orientation;
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -374,6 +378,29 @@ public class MainActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening.");
         }
+    }
+
+    private String chooseCamera(){
+        final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try{
+            for (final String cameraId : manager.getCameraIdList()){
+                final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
+                final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_EXTERNAL){ // RB5 기준으로 back이 rgb 카메라
+                    Range<Long> extimes = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE);
+                    Range<Integer> setims = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE);
+                    Log.i(TAG, String.format("%d ~ %d", extimes.getLower(), extimes.getUpper()));
+                    Log.i(TAG, String.format("%d ~ %d", setims.getLower(), setims.getUpper()));
+
+                    return cameraId;
+                }
+            }
+        }catch(CameraAccessException e){
+            Log.e(TAG, e.getMessage());
+        }
+
+        return "";
     }
 
     private void closeCamera() {
