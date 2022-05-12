@@ -45,9 +45,11 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -347,9 +349,20 @@ public class MainActivity extends AppCompatActivity {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
             String cameraId = chooseCamera();
+            //String cameraId = manager.getCameraIdList()[2];
+            Log.i(TAG, String.format("%s", cameraId));
             // Choose the sizes for camera preview and video recording
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
-            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+            final StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            int sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            Log.i(TAG, String.format("sensorOrientation: %d", sensorOrientation));
+            Size[] mapSize = map.getOutputSizes(SurfaceTexture.class);
+            for (Size option : mapSize){
+                Log.i(TAG, String.format("map X: %d, Y: %d", option.getWidth(), option.getHeight()));
+            }
+
+            //StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
             mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
             mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class), width, height, mVideoSize);
@@ -439,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
             mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF);
             mPreviewBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
             mPreviewBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
-            mPreviewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 17000000l) ;
+            mPreviewBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 15000000l) ;
             mPreviewBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, 400) ;
 
             Surface previewSurface = new Surface(texture);
@@ -526,13 +539,15 @@ public class MainActivity extends AppCompatActivity {
             path.mkdirs();
         }
 
-        String fileName = String.format("%d.mp4", System.currentTimeMillis());
+        //String fileName = String.format("%d.mp4", System.currentTimeMillis());
+        String fileName = String.format("%s.mp4", getTime());
         mNextVideo = new File(path, fileName);
         mNextVideoAbsolutePath = mNextVideo.getAbsolutePath();
 
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+        Log.i(TAG, String.format("Saved size w h : %d x %d", mVideoSize.getWidth(), mVideoSize.getHeight()));
         //mMediaRecorder.setVideoSize(1280, 720);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
         //mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
@@ -634,6 +649,14 @@ public class MainActivity extends AppCompatActivity {
 
         mNextVideoAbsolutePath = null;
         startPreview();
+    }
+    //현재 시간을 "yyyy-MM-dd hh:mm:ss"로 표시하는 메소드
+    private String getTime() {
+        long now = System.currentTimeMillis();
+        Date date = new Date(now);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss");
+        String getTime = dateFormat.format(date);
+        return getTime;
     }
 
     /**
